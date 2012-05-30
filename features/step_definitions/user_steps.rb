@@ -15,3 +15,24 @@ end
 Then /^I should see "(.*?)"$/ do |text|
   page.should have_content(text)
 end
+
+Given /^a User has posted the following messages:$/ do |messages|
+  user = FactoryGirl.create(:user)
+  messages_attributes = messages.hashes.map do |message_attrs|
+    message_attrs.merge({:user => user})
+  end
+  Message.create!(messages_attributes, :without_protection => true)
+end
+
+When /^I search for "(.*?)"$/ do |query|
+  visit('/search')
+  fill_in('query', :with => query)
+  click_button('Search')
+end
+
+Then /^the results should be:$/ do |expected_results|
+  results = [['content']] + page.all('ol.results li').map do |li|
+    [li.text]
+  end
+  expected_results.diff!(results)
+end
